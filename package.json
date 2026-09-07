@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Jaid/get-free.git"
+    "url": "git+https://github.com/Jaid/get-free.git"
   },
   "scripts": {
     "test": "bun test --max-concurrency 1"
