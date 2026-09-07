@@ -1,6 +1,6 @@
 {
   "name": "get-free",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Increments a numeric suffix until the first not yet occupied is found",
   "funding": "https://github.com/sponsors/Jaid",
