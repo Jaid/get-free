@@ -16,6 +16,7 @@ async function *asyncOccupiedIds() {
 const mixedPredicate: Occupations = id => {
   return id === 'log' ? true : Promise.resolve(false)
 }
+const getFreeThroughGeneric = <T extends Occupations>(occupations: T) => getFree('log', occupations)
 describe('getFree', () => {
   test('returns the bare base when it is free', async () => {
     expect(await getFree('log', [])).toBe('log')
@@ -327,5 +328,49 @@ describe('maximum', () => {
   })
   test('uses the default maximum when explicitly undefined', () => {
     expect(getFree('log', ['log'], {maximum: undefined})).toBe('log_2')
+  })
+})
+describe('precise overloads', () => {
+  test.each([false, true])('infers string for unions of synchronous sources with predicate=%s', usePredicate => {
+    const occupations = usePredicate ? (id: string) => id === 'log' : ['log']
+    const result = getFree('log', occupations)
+    expectTypeOf(result).toEqualTypeOf<string>()
+    expect(result).toBe('log_2')
+  })
+  test.each([false, true])('infers Promise for unions of asynchronous sources with predicate=%s', usePredicate => {
+    const occupations = usePredicate ? (id: string) => Promise.resolve(id !== 'log_3') : asyncOccupiedIds()
+    const result = getFree('log', occupations)
+    expectTypeOf(result).toEqualTypeOf<Promise<string>>()
+    return expect(result).resolves.toBe('log_3')
+  })
+  test('preserves input-dependent results through a generic wrapper', async () => {
+    const syncResult = getFreeThroughGeneric(['log'])
+    const asyncResult = getFreeThroughGeneric(asyncOccupiedIds())
+    const mixedResult = getFreeThroughGeneric(mixedPredicate)
+    expectTypeOf(syncResult).toEqualTypeOf<string>()
+    expectTypeOf(asyncResult).toEqualTypeOf<Promise<string>>()
+    expectTypeOf(mixedResult).toEqualTypeOf<Promise<string> | string>()
+    expect(syncResult).toBe('log_2')
+    expect(await asyncResult).toBe('log_3')
+    expect(await mixedResult).toBe('log_2')
+  })
+  test.each([false, true])('keeps the necessary union for mixed source types with async=%s', useAsync => {
+    const occupations = useAsync ? asyncOccupiedIds() : ['log', 'log_2']
+    const result = getFree('log', occupations)
+    expectTypeOf(result).toEqualTypeOf<Promise<string> | string>()
+    return expect(Promise.resolve(result)).resolves.toBe('log_3')
+  })
+  test('prefers asynchronous iteration for dual-protocol iterables', async () => {
+    const occupations = {
+      [Symbol.iterator]: occupiedIds,
+      [Symbol.asyncIterator]: asyncOccupiedIds,
+    }
+    const result = getFree('log', occupations)
+    const genericResult = getFreeThroughGeneric(occupations)
+    expectTypeOf(result).toEqualTypeOf<Promise<string>>()
+    expectTypeOf(genericResult).toEqualTypeOf<Promise<string>>()
+    expect(result).toBeInstanceOf(Promise)
+    expect(await result).toBe('log_3')
+    expect(await genericResult).toBe('log_3')
   })
 })

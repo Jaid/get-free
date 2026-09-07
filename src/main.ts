@@ -30,13 +30,23 @@ export type Options = {
 
 export type Occupations = ((id: string) => PromiseLike<boolean> | boolean) | AsyncIterable<string> | Iterable<string>
 
+type FreeResult<T extends Occupations> = T extends (id: string) => infer Result
+  ? Result extends boolean
+    ? string
+    : Promise<string>
+  : T extends AsyncIterable<string>
+    ? Promise<string>
+    : string
+
 /**
  * Finds the first unoccupied ID. Iterable sources must be finite and are collected once.
  * A predicate returns `true` for an occupied ID and is called sequentially.
  */
-function getFree(base: string, occupations: ((id: string) => PromiseLike<boolean>) | AsyncIterable<string>, options?: Options): Promise<string>
-function getFree(base: string, occupations: ((id: string) => boolean) | Iterable<string>, options?: Options): string
-function getFree(base: string, occupations: Occupations, options?: Options): Promise<string> | string
+function getFree(base: string, occupations: (id: string) => PromiseLike<boolean>, options?: Options): Promise<string>
+function getFree(base: string, occupations: (id: string) => boolean, options?: Options): string
+function getFree(base: string, occupations: AsyncIterable<string>, options?: Options): Promise<string>
+function getFree(base: string, occupations: Iterable<string>, options?: Options): string
+function getFree<T extends Occupations>(base: string, occupations: T, options?: Options): FreeResult<T>
 function getFree(base: string, occupations: Occupations, options: Options = {}): Promise<string> | string {
   const {connector = '_', consistent = false, pad = 1, start = 1, maximum = Number.MAX_SAFE_INTEGER} = options
   if (!Number.isSafeInteger(start) || start < 0) {
