@@ -2,6 +2,13 @@
   "name": "get-free",
   "version": "0.1.0",
   "type": "module",
+  "description": "Increments a numeric suffix until the first not yet occupied is found",
+  "funding": "https://github.com/sponsors/Jaid",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jaid/get-free.git"
+  },
   "exports": {
     ".": {
       "default": "./src/main.ts"
@@ -10,10 +17,6 @@
   "imports": {
     "#src/*": "./src/*",
     "#root/*": "./*"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Jaid/get-free.git"
   },
   "scripts": {
     "test": "bun test --max-concurrency 1 ./test"
@@ -24,7 +27,5 @@
     "eslint-config-jaid": "26.0.0",
     "tsconfig-jaid-bun": "16.0.0",
     "typescript": "npm:typescript-classic@6.0.4"
-  },
-  "funding": "https://github.com/sponsors/Jaid",
-  "license": "MIT"
+  }
 }
